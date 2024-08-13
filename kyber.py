@@ -262,7 +262,7 @@ def constantTimeSelectOnEquality(a, b, ifEq, ifNeq):
 
 def InnerKeyGen(seed, params):
     assert len(seed) == 32
-    rho, sigma = G(seed)
+    rho, sigma = G(seed + bytes([params.k]))
     A = sampleMatrix(rho, params.k)
     s = sampleNoise(sigma, params.eta1, 0, params.k)
     e = sampleNoise(sigma, params.eta1, params.k, params.k)
@@ -276,6 +276,8 @@ def InnerKeyGen(seed, params):
 def InnerEnc(pk, msg, seed, params):
     assert len(msg) == 32
     tHat = DecodeVec(pk[:-32], params.k, 12)
+    if EncodeVec(tHat, 12) != pk[:-32]:
+        raise Exception("ML-KEM public key not normalized")
     rho = pk[-32:]
     A = sampleMatrix(rho, params.k)
     r = sampleNoise(seed, params.eta1, 0, params.k)

@@ -1,5 +1,5 @@
 ---
-title: Kyber Post-Quantum KEM
+title: ML-KEM Post-Quantum KEM
 abbrev: kyber
 category: info
 
@@ -70,8 +70,8 @@ informative:
     format:
       PDF: https://pq-crystals.org/kyber/data/kyber-specification-round3-20210804.pdf
   MLKEM:
-    target: https://csrc.nist.gov/pubs/fips/203/ipd
-    title: 'FIPS 203 (Initial Draft): Module-Lattice-Based Key-Encapsulation Mechanism Standard'
+    target: https://csrc.nist.gov/pubs/fips/203/final
+    title: 'FIPS 203: Module-Lattice-Based Key-Encapsulation Mechanism Standard'
     author:
       -
         ins: National Institute of Standards and Technology
@@ -103,8 +103,7 @@ informative:
 
 --- abstract
 
-This memo specifies a preliminary version (XXX)
-    of Kyber, an IND-CCA2 secure Key Encapsulation Method.
+This memo specifies ML-KEM, an IND-CCA2 secure Key Encapsulation Method.
 
 --- middle
 
@@ -112,10 +111,11 @@ This memo specifies a preliminary version (XXX)
 
 # Introduction
 
-Kyber is NIST's pick for a post-quantum key agreement {{NISTR3}}.
+ML-KEM is NIST's first post-quantum key agreement based on the
+Kyber submission. {{NISTR3}}.
 
-Kyber is not a Diffie-Hellman (DH) style non-interactive key agreement,
-but instead, Kyber is a Key Encapsulation Method (KEM).
+ML-KEM is not a Diffie-Hellman (DH) style non-interactive key agreement,
+but instead, ML-KEM is a Key Encapsulation Method (KEM).
 A KEM is a three-tuple of algorithms (*KeyGen*, *Encapsulate*, *Decapsulate*):
 
  - *KeyGen* takes no inputs and generates a private key and a public key;
@@ -145,16 +145,16 @@ the draft for ML-KEM published by NIST August 2023. {{MLKEM}}
 
 # Overview
 
-Kyber is an IND-CCA2 secure KEM. It is constructed by applying a
+ML-KEM is an IND-CCA2 secure KEM. It is constructed by applying a
 Fujisaki-Okamato style transformation on InnerPKE, which is
 the underlying IND-CPA secure Public Key Encryption scheme.
 We cannot use InnerPKE directly, as its ciphertexts are malleable.
 
                        F.O. transform
-       InnerPKE   ---------------------->   Kyber
+       InnerPKE   ---------------------->   ML-KEM
        IND-CPA                              IND-CCA2
 
-Kyber is a lattice-based scheme. More precisely, its security
+ML-KEM is a lattice-based scheme. More precisely, its security
 is based on the learning-with-errors-and-rounding problem in module
 lattices (MLWER).
 The underlying polynomial ring R (defined in {{S-ring}}) is chosen such that
@@ -163,9 +163,9 @@ multiplication is very fast using the number theoretic transform
 
 An InnerPKE private key is a vector *s* over R of length k which is
 _small_ in a particular way. Here `k` is a security parameter akin to the
-size of a prime modulus. For Kyber512, which targets AES-128's security level,
-the value of k is 2, for Kyber768 (AES-192 security level) k is 3,
-and for Kyber1024 (AES-256 security level) k is 4.
+size of a prime modulus. For ML-KEM-512, which targets AES-128's security level,
+the value of k is 2, for ML-KEM-768 (AES-192 security level) k is 3,
+and for ML-KEM-1024 (AES-256 security level) k is 4.
 
 The public key consists of two values:
 
@@ -215,11 +215,11 @@ of coefficients for our polynomial ring; what it means to be small;
 and how to compress. Then we define the polynomial ring R; its operations
 and in particular the NTT. We continue with the different methods of
 sampling and (de)serialization. Then, we first define InnerPKE
-and finally Kyber proper.
+and finally ML-KEM proper.
 
 # The field GF(q)
 
-Kyber is defined over GF(q) = Z/qZ, the integers modulo q = 13\*2^8+1 = 3329.
+ML-KEM is defined over GF(q) = Z/qZ, the integers modulo q = 13\*2^8+1 = 3329.
 
 ## Size
 
@@ -294,7 +294,7 @@ On platforms where Div is not constant-time, the following
 
 # The ring Rq {#S-ring}
 
-Kyber is defined over a polynomial ring Rq = GF(q)[x]/(x^n+1)
+ML-KEM is defined over a polynomial ring Rq = GF(q)[x]/(x^n+1)
 where n=256 (and q=3329). Elements of Rq are tuples of 256 integers modulo q.
 We will call them polynomials or elements interchangeably.
 
@@ -516,7 +516,7 @@ That is: a * b = InvNTT(NTT(a) o NTT(b)). Concretely:
 
 # Symmetric cryptographic primitives
 
-Kyber makes use of various symmetric primitives XOF, PRF1, PRF2, H,
+ML-KEM makes use of various symmetric primitives XOF, PRF1, PRF2, H,
 and G, where
 
     XOF(seed) = SHAKE-128(seed)
@@ -621,7 +621,7 @@ Recall that we start counting vector indices at zero.
 ## Operations on vectors {#S-VectorOps}
 
 Recall that Compress(x, d) maps a field element x into {0, ..., 2^d-1}.
-In Kyber d is at most 11 and so we can interpret Compress(x, d) as a field
+In ML-KEM d is at most 11 and so we can interpret Compress(x, d) as a field
 element again.
 
 In this way, we can extend Compress(-, d) to polynomials by applying
@@ -701,9 +701,9 @@ DecodeVec(-, w) is the unique inverse of EncodeVec(-, w).
 # Inner malleable public-key encryption scheme
 
 We are ready to define the IND-CPA secure Public-Key Encryption scheme that
-underlies Kyber. It is unsafe to use this underlying scheme directly as
+underlies ML-KEM. It is unsafe to use this underlying scheme directly as
 its ciphertexts are malleable. Instead, a Public-Key Encryption scheme
-can be constructed on top of Kyber by using HPKE {{RFC9180}} {{XYBERHPKE}}.
+can be constructed on top of ML-KEM by using HPKE {{RFC9180}} {{XYBERHPKE}}.
 
 ## Parameters
 We have already been introduced to the following parameters:
@@ -723,7 +723,7 @@ We have already been introduced to the following parameters:
 *k*
 : Main security parameter: the number of rows and columns in the matrix *A*.
 
-Additionally, Kyber takes the following parameters
+Additionally, ML-KEM takes the following parameters
 
 *eta1*, *eta2*
 : Size of small coefficients used in the private key and noise vectors.
@@ -738,7 +738,7 @@ The values of these parameters are given in {{S-params}}.
 InnerKeyGen(seed) takes a 32 octet **seed** and deterministically
 produces a keypair as follows.
 
-1. Set (rho, sigma) = G(seed).
+1. Set (rho, sigma) = G(seed || octet(k)).
 2. Derive
     1. AHat = sampleMatrix(rho).
     2. s = sampleNoise(sigma, eta1, 0)
@@ -766,12 +766,14 @@ key publicKey as follows.
     2. r = sampleNoise(seed, eta1, 0)
     3. e\_1 = sampleNoise(seed, eta2, k)
     4. e\_2 = sampleNoise(seed, eta2, 2k)\_0
+    5. tHatPacked2 = EncodeVec(tHat, 12)
 4. Compute
     1. rHat = NTT(r)
     2. u = InvNTT(AHat^T o rHat) + e\_1
     3. v = InvNTT(tHat o rHat) + e\_2 + Decompress(DecodePoly(msg, 1), 1)
     4. c\_1 = EncodeVec(Compress(u, d\_u), d\_u)
     5. c\_2 = EncodePoly(Compress(v, d\_v), d\_v)
+5. Abort unless tHatPacked == tHatPacked2.
 5. Return
     1. cipherText = c\_1 \|\| c\_2
 
@@ -792,13 +794,13 @@ privateKey and decrypts a cipher text cipherText as follows.
     1. plainText = EncodePoly(Compress(m, 1), 1)
 
 
-# Kyber
+# ML-KEM
 
-Now we are ready to define Kyber itself.
+Now we are ready to define ML-KEM itself.
 
 ## Key generation
 
-A Kyber keypair is derived deterministically from a 64-octet seed as follows.
+A ML-KEM keypair is derived deterministically from a 64-octet seed as follows.
 
 1. Split seed into
     2. A 32-octet cpaSeed
@@ -812,7 +814,7 @@ A Kyber keypair is derived deterministically from a 64-octet seed as follows.
 
 ## Encapsulation
 
-Kyber encapsulation takes a public key and generates a shared secret
+ML-KEM encapsulation takes a public key and generates a shared secret
 and ciphertext for the public key as follows.
 
 1. Sample secret cryptographically-secure random 32-octet seed.
@@ -824,7 +826,7 @@ and ciphertext for the public key as follows.
     2. sharedSecret = K
 
 ## Decapsulation {#S-decaps}
-Kyber decapsulation takes a private key and a cipher text and
+ML-KEM decapsulation takes a private key and a cipher text and
 returns a shared secret as follows.
 
 1. Split privateKey into
@@ -852,7 +854,7 @@ viz `cipherText == cipherText2`.
 |q     | 3329  | Order of base field                |
 |n     | 256   | Degree of polynomials              |
 |zeta  | 17    | nth root of unity in base field    |
-{: #params-comm title="Common parameters to all versions of Kyber" }
+{: #params-comm title="Common parameters to all versions of ML-KEM" }
 
 
 |Primitive  | Instantiation        |
@@ -862,7 +864,7 @@ viz `cipherText == cipherText2`.
 |G          | SHA3-512             |
 |PRF1(s,b)  | SHAKE-256(s \|\| b)  |
 |PRF2(s,m)  | SHAKE-256(s \|\| m)  |
-{: #params-symm title="Instantiation of symmetric primitives in Kyber" }
+{: #params-symm title="Instantiation of symmetric primitives in ML-KEM" }
 
 | Name       |Description                                                                                        |
 |-----------:|:--------------------------------------------------------------------------------------------------|
@@ -874,17 +876,17 @@ viz `cipherText == cipherText2`.
 
 |Parameter set | k |eta1|eta2|d\_u|d\_v|sec|DFP     |
 |-------------:|:-:|:--:|:--:|:--:|:--:|:-:|:------:|
-|Kyber512      | 2 |  3 | 2  |10  |4   |I  |2^-139  |
-|Kyber768      | 3 |  2 | 2  |10  |4   |III|2^-164  |
-|Kyber1024     | 4 |  2 | 2  |11  |5   |V  |2^-174  |
-{: #params title="Kyber parameter sets with NIST security level (sec) and decryption failure probability (DFP)" }
+|ML-KEM-512    | 2 |  3 | 2  |10  |4   |I  |2^-139  |
+|ML-KEM-768    | 3 |  2 | 2  |10  |4   |III|2^-164  |
+|ML-KEM-1024   | 4 |  2 | 2  |11  |5   |V  |2^-174  |
+{: #params title="ML-KEM parameter sets with NIST security level (sec) and decryption failure probability (DFP)" }
 
 |Parameter set | ss |  pk  |  ct  |  sk  |
 |-------------:|:--:|:----:|:----:|:----:|
-|Kyber512      | 32 | 800  | 768  | 1632 |
-|Kyber768      | 32 | 1184 | 1088 | 2400 |
-|Kyber1024     | 32 | 1568 | 1568 | 3168 |
-{: #sizes title="Kyber parameter sets with sizes of shared secret (ss), public key (pk), cipher text (ct) and private key (sk)" }
+|ML-KEM-512    | 32 | 800  | 768  | 1632 |
+|ML-KEM-768    | 32 | 1184 | 1088 | 2400 |
+|ML-KEM-1024   | 32 | 1568 | 1568 | 3168 |
+{: #sizes title="ML-KEM parameter sets with sizes of shared secret (ss), public key (pk), cipher text (ct) and private key (sk)" }
 
 # Machine-readable specification {#S-spec}
 
@@ -894,14 +896,14 @@ viz `cipherText == cipherText2`.
 
 # Security Considerations
 
-Kyber512, Kyber768 and Kyber1024 are designed to be post-quantum
+ML-KEM-512, ML-KEM-768, and ML-KEM-1024 are designed to be post-quantum
 IND-CCA2 secure KEMs, at the security levels of AES-128, AES-192 and AES-256.
 
-The designers of Kyber recommend Kyber768.
+The designers of Kyber recommend ML-KEM-768.
 
 The inner public key encryption SHOULD NOT be used directly,
 as its ciphertexts are malleable.  Instead, for public key encryption,
-HPKE can be used to turn Kyber into IND-CCA2 secure PKE {{RFC9180}} {{XYBERHPKE}}.
+HPKE can be used to turn ML-KEM-768 into IND-CCA2 secure PKE {{RFC9180}} {{XYBERHPKE}}.
 
 Any implementation MUST use implicit rejection as specified in {{S-decaps}}.
 
